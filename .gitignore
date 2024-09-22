@@ -1,1 +1,18 @@
 __pycache__/
+venv/
+
+#prolly not necessary but doesn't hurt
+.venv/
+
+#also ignore environment var, although I don have any lol
+.env
+.vscode/
+.idea/
+
+#ignore all the debugging files as all these should be runtime generated
+*.json
+*.pem
+*.sig
+
+#but the following we do not ignore, exceptions:
+!dummy.json

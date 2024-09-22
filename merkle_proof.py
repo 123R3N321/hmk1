@@ -133,7 +133,7 @@ def root_from_inclusion_proof(hasher, index, size, leaf_hash, proof):
     res = chain_border_right(hasher, res, proof[inner:])
     return res
 
-
+# proof is the hases list, of sibling hashes.
 def verify_inclusion(hasher, index, size, leaf_hash, proof, root, debug=False):
     bytearray_proof = []
     for elem in proof:
@@ -146,6 +146,8 @@ def verify_inclusion(hasher, index, size, leaf_hash, proof, root, debug=False):
     if debug:
         print("Calculated root hash", calc_root.hex())
         print("Given root hash", bytearray_root.hex())
+        if (bytearray_root.hex() == calc_root.hex()):
+            print("Root hash matches (identical) -- Ren")
 
 # requires entry["body"] output for a log entry
 # returns the leaf hash according to the rfc 6962 spec

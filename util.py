@@ -7,21 +7,26 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.exceptions import InvalidSignature
 
+'''
+ren: below func is used after we base64decode the online entry log
+'''
 
+# function call pass in the decoded raw string
 # extracts and returns public key from a given cert (in pem format)
-def extract_public_key(cert):
+def extract_public_key(cert = None):
 # read the certificate
-#    with open("cert.pem", "rb") as cert_file:
+#     with open("online_cert.pem", "rb") as cert_file:
 #        cert_data = cert_file.read()
 
 # load the certificate
     certificate = x509.load_pem_x509_certificate(cert, default_backend())
+    # certificate = x509.load_pem_x509_certificate(cert_data, default_backend())  #this is my proposed change
 
 # extract the public key
     public_key = certificate.public_key()
 
 # save the public key to a PEM file
-#    with open("cert_public.pem", "wb") as pub_key_file:
+#     with open("cert_public.pem", "wb") as pub_key_file:
 #        pub_key_file.write(public_key.public_bytes(
 #            encoding=serialization.Encoding.PEM,
 #            format=serialization.PublicFormat.SubjectPublicKeyInfo
@@ -54,6 +59,7 @@ def verify_artifact_signature(signature, public_key, artifact_filename):
             data,
             ec.ECDSA(hashes.SHA256())
         )
+        print("artifact sig verification succeeded! -- Ren")
     except InvalidSignature as e:
         print("Signature is invalid")
     except Exception as e:
