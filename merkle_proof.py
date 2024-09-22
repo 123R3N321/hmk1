@@ -78,6 +78,7 @@ def verify_consistency(hasher, size1, size2, proof, root1, root2):
     hash2 = chain_inner(hasher, seed, bytearray_proof[:inner], mask)
     hash2 = chain_border_right(hasher, hash2, bytearray_proof[inner:])
     verify_match(hash2, root2)
+    print("consistency proof: all tests passed! --Ren")
 
 def verify_match(calculated, expected):
     if calculated != expected:

@@ -2,6 +2,7 @@ import ast
 import json
 import argparse
 import hashlib
+import re   #because Im lazy
 from audioop import reverse
 from inspect import signature
 from logging import debug
@@ -47,6 +48,8 @@ def get_verification_proof(log_index, debug=False):
     # verify that log index value is sane
     pass
 
+
+#the functionality is also done by the custom helper step7_8() func
 def inclusion(log_index, artifact_filepath, debug=False):
     # verify that log index and artifact filepath values are sane
     # extract_public_key(certificate)
@@ -60,7 +63,7 @@ def get_latest_checkpoint(debug=False):
 
 def consistency(prev_checkpoint, debug=False):
     # verify that prev checkpoint is not empty
-    # get_latest_checkpoint()
+    get_latest_checkpoint()
     pass
 
 def main():
@@ -184,13 +187,23 @@ def compute_leaf_hash(body):
 Ren: this is a helper/debug func to perform step 8
 note that this uses the raw log entry retrieved by previous helper funcs
 '''
-def step7_8():
+def step12():
     with open("raw_log_entry.json", "r") as f:
         entry = json.load(f)
     for i in entry:  # because data is a single key-val pair
         #extract some data before decoding, see raw_log_entry.json
         leaf_hash = compute_leaf_hash(entry[i]['body'])
         #hashes is the proof
+        checkpoint_data = entry[i]['verification']['inclusionProof']['checkpoint']
+        #we only need tree id from this part, as size and root hash are nicely given below
+        pattern = r'- (.*?)\n'  # the weird format. What can I say
+        match = re.search(pattern, checkpoint_data)
+        if match:
+            tree_id = match.group(1).strip()
+            print(f"successful tree id extraction:{tree_id}")
+        else:
+            print("WARNING: no tree id found")
+
         hashes = entry[i]['verification']['inclusionProof']['hashes']
         proof_log_index = entry[i]['verification']['inclusionProof']['logIndex']
         root_hash = entry[i]['verification']['inclusionProof']['rootHash']
@@ -213,6 +226,33 @@ def step7_8():
     #step8
     verify_inclusion(DefaultHasher, proof_log_index, tree_size, leaf_hash, hashes, root_hash, debug = True)
 
+    #next, we get the latest checkpoint and call verify_consistency to match against our own checkpoint
+    checkpoint_response = requests.get("https://rekor.sigstore.dev/api/v1/log?stable=true")
+    checkpoint_response_data = checkpoint_response.json()   #convert to json format
+
+    # with open('est.json', 'w') as testfile:   #debug code generate json
+    #     json.dump(checkpoint_response_data, testfile)
+
+    checkpoint_root_hash = checkpoint_response_data['rootHash'] #str
+    checkpoint_tree_id = checkpoint_response_data['treeID'] #str
+    checkpoint_tree_size = checkpoint_response_data['treeSize'] #int
+
+    #the proof uses my own tree size against latest tree size
+    proof_response = requests.get(f"https://rekor.sigstore.dev/api/v1/log/proof?firstSize={tree_size}&lastSize={checkpoint_tree_size}&treeID={checkpoint_tree_id}")
+    proof_response_data = proof_response.json()
+
+    # with open("test.json", 'w') as f: #debug file dump
+    #     json.dump(proof_response_data, f)
+
+    proof_hashes = proof_response_data['hashes']
+
+
+    # params: hasher, size1, size2, proof, root1, root2
+    verify_consistency(DefaultHasher, int(tree_size), int(checkpoint_tree_size), proof_hashes, root_hash,checkpoint_root_hash)
+
+
+
+
 
 if __name__ == "__main__":
     # main()
@@ -224,4 +264,4 @@ if __name__ == "__main__":
     # verify_artifact_signature(base64.b64decode('MEMCIFz/QVJ/2595WUxl1MKhACWas3cFIIJb7cgRmFS3q1/jAh8kN8KPBxW+CfdbXJApfNZbMXg6d/+T2ZuDU3XL51CG'),
     # extract_public_key(base64.b64decode('LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN6RENDQWxPZ0F3SUJBZ0lVSkdsODhoWjhSa2huUk1nT0lGV3JWOG0xY3hRd0NnWUlLb1pJemowRUF3TXcKTnpFVk1CTUdBMVVFQ2hNTWMybG5jM1J2Y21VdVpHVjJNUjR3SEFZRFZRUURFeFZ6YVdkemRHOXlaUzFwYm5SbApjbTFsWkdsaGRHVXdIaGNOTWpRd09URTVNVGMwTURJMldoY05NalF3T1RFNU1UYzFNREkyV2pBQU1Ga3dFd1lICktvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVFUXd0bEhTR2dGeXhZc0lOWVJ4UCs1MXlKbVhrbXZ4dy85OEYKN3hObHo4eUNHbXhIdDlIM0dRSUxGdmNaQnlvN2dEUndDRFpsU0pFbzVadC9OeDRjVktPQ0FYSXdnZ0Z1TUE0RwpBMVVkRHdFQi93UUVBd0lIZ0RBVEJnTlZIU1VFRERBS0JnZ3JCZ0VGQlFjREF6QWRCZ05WSFE0RUZnUVVwQWZlCnpsVjYyUUdhZjRqbGNFMHlldkxLamJzd0h3WURWUjBqQkJnd0ZvQVUzOVBwejFZa0VaYjVxTmpwS0ZXaXhpNFkKWkQ4d0hBWURWUjBSQVFIL0JCSXdFSUVPYW5JMU9EZzNRRzU1ZFM1bFpIVXdMQVlLS3dZQkJBR0R2ekFCQVFRZQphSFIwY0hNNkx5OW5hWFJvZFdJdVkyOXRMMnh2WjJsdUwyOWhkWFJvTUM0R0Npc0dBUVFCZzc4d0FRZ0VJQXdlCmFIUjBjSE02THk5bmFYUm9kV0l1WTI5dEwyeHZaMmx1TDI5aGRYUm9NSUdLQmdvckJnRUVBZFo1QWdRQ0JId0UKZWdCNEFIWUEzVDB3YXNiSEVUSmpHUjRjbVdjM0FxSktYcmplUEszL2g0cHlnQzhwN280QUFBR1NDMTczb2dBQQpCQU1BUnpCRkFpRUF0bW9RZ0x0L05vZE1nMHpreVlkYnNJbDFjVlgxYzNkbDRBNUNvWmxJL2RvQ0lFYVFzTkorCnk2QVdqeEVXMGFrZHp6clVVSmNseWZKcy84R2VQdUxjZURIN01Bb0dDQ3FHU000OUJBTURBMmNBTUdRQ01Dc3EKdWE2RTMxemtRNHczc3dhckNXd3pCSmFDZ3IvSkRXTFRwWmw0dU9LODlGcmhnT0t1NEdjREZyOFJkL2lDSkFJdwpmRitmTUY0bmdURGpyYVNmRG80cFNLRFNCWG14aXVJY20zbnlYRVQ0cytZa2pQY0oyY3o4QWF6Tm4zTG1qOGVXCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K')),
     # 'artifact.md')
-    step7_8()
+    step12()
