@@ -1,18 +1,19 @@
-# Python Rekor Monitor Template
-This is template code for an assignment in Software Supply Chain Security class.
+# This is homework1 of CS-GY/UY 3943/9223 SUpply Chain Secrity
 
+## how to use:
+commands:
+- python3 main.py -c
+- python3 main.py --inclusion artifact.md 
+  - (the last command can be changed to anything you sign)
+- python3 main.py --consistency
 
-## questions and notes:
- - there is code update from Mayand, check it out
- - need to check on the cryptography lib
- - why is the bundle command not formatting the PEM?
- - why is my PEM encoding wrong? should I base64 it?
- - what is the commented out section in util? (file manipulation)
- - the flow of work?
- - what is "sane"?
- - checkpoint interpretation?
- - is command line generated code/data part of the submission?
- - naming?
- - stdout of cert from bundle diff from command output file content
- - ephemeral? does that mean I literally have to act fast for it to work out? or only need to check data consistency?
- - 
+## notes
+The point of this homework is the know-how of cosign tools, i particular the rekor APIs
+- the "security" is implemented as a merkle tree, and in this homework I compare two nodes in the tree:
+the latest checkpoint provided by Rekor that is just simply literally the latest checkpoint
+and the checkpoint of my own signed artifact which is retrievable via
+api call using the log index generated when I signed the artifact.
+
+## reference materials:
+- Template Code: https://github.com/mayank-ramnani/python-rekor-monitor-template
+- Rekor API Spec: https://www.sigstore.dev/swagger/#/tlog/getLogInfo
