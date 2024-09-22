@@ -35,6 +35,10 @@ class Hasher:
 DefaultHasher = Hasher(hashlib.sha256)
 
 def verify_consistency(hasher, size1, size2, proof, root1, root2):
+
+    #debug:
+    # print(f"size1:{size1}\nsize2:{size2}\nproof_size:{len(proof)}")
+
     # change format of args to be bytearray instead of hex strings
     root1 = bytes.fromhex(root1)
     root2 = bytes.fromhex(root2)
@@ -83,6 +87,8 @@ def verify_consistency(hasher, size1, size2, proof, root1, root2):
 def verify_match(calculated, expected):
     if calculated != expected:
         raise RootMismatchError(expected, calculated)
+    else:
+        print("inclusion proof is sound! --Ren")
 
 def decomp_incl_proof(index, size):
     inner = inner_proof_size(index, size)
