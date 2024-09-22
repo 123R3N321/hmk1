@@ -14,6 +14,14 @@ the latest checkpoint provided by Rekor that is just simply literally the latest
 and the checkpoint of my own signed artifact which is retrievable via
 api call using the log index generated when I signed the artifact.
 
+- somehow against my simple understanding of the merkle tree implementation, the "treeSize" filed goes backward:
+If you check the log index 1 on Rekor, the tree size is huge (4163431) while by the point I did this homework
+and signed a dummy, the size is only 1110000+ ~ish, I wonder what happens when number
+reaches 0.
+
+- prof explained in class that this implementation is lighter-weight than actual blockchain but I don't quite see why or how.
+
+
 ## reference materials:
 - Template Code: https://github.com/mayank-ramnani/python-rekor-monitor-template
 - Rekor API Spec: https://www.sigstore.dev/swagger/#/tlog/getLogInfo
