@@ -46,6 +46,7 @@ def verify_consistency(hasher, size1, size2, proof, root1, root2):
     for elem in proof:
         bytearray_proof.append(bytes.fromhex(elem))
 
+    # this mean size 2 should be bigger than size1, implied size 2 corres to root and size1 the leaf
     if size2 < size1:
         raise ValueError(f"size2 ({size2}) < size1 ({size1})")
     if size1 == size2:
