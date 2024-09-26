@@ -1,11 +1,15 @@
+'''
+This is a simple use case of sigstore cosign.
+The code is tested with signing a single artifact
+at log index 132216490
+'''
+
+
 import ast
 import json
 import argparse
 import hashlib
 import re   #because Im lazy
-from audioop import reverse
-from inspect import signature
-from logging import debug
 
 import requests
 import base64
@@ -17,53 +21,12 @@ from merkle_proof import DefaultHasher, verify_consistency, verify_inclusion, co
 log_index = 132216490   # this is the latest.
 
 
-def get_log_entry(log_index, debug=False):
-    info = requests.get(f'https://rekor.sigstore.dev/api/v1/log/entries?logIndex={log_index}').json()
-    # for i in info:  #info is a dict. in my case it has a single key-val pair, the key is UUID, part of it is the leaf hasg
-    #     decoded = base64.b64decode(info[i]['body']).decode('utf-8')
-    #     with open('log_entry.json', 'w') as file:
-    #         file.write(decoded) #store the base 64 decoded log entry
-    # with open('raw_log_entry.json','w') as f:
-    #     json.dump(info,f)
-    # verify that log index value is sane
-    pass
+'''
+fetch the raw json of the log entry 
+'''
+def get_log_entry(log_index):
+     return requests.get(f'https://rekor.sigstore.dev/api/v1/log/entries?logIndex={log_index}').json()
 
-def extract_cert_and_sig_from_log_entry(decoded_log_entry):
-    with open(decoded_log_entry, 'r') as file:
-        data = json.load(file)
-        sig = data['spec']['signature']['content']
-        cert = data['spec']['signature']['publicKey']['content']
-    print(f'\tsig is: \n\t{sig}\n')
-    print(f'\tcert is: \n\t{cert}\n')   #the cert is the pubKey!
-    # with open('online_sig.sig', 'w') as sigfile:
-    #     sigfile.write(sig)
-    # with open('online_cert.pem', 'w') as cerfile:
-    #     cerfile.write(cert)
-
-
-def get_verification_proof(log_index, debug=False):
-    # verify that log index value is sane
-    pass
-
-
-#the functionality is also done by the custom helper step7_8() func
-def inclusion(log_index, artifact_filepath, debug=False):
-    # verify that log index and artifact filepath values are sane
-    # extract_public_key(certificate)
-    # verify_artifact_signature(signature, public_key, artifact_filepath)
-    # get_verification_proof(log_index)
-    # verify_inclusion(DefaultHasher, index, tree_size, leaf_hash, hashes, root_hash)
-    pass
-
-#shld return a raw log
-def get_latest_checkpoint(debug=False):
-
-    pass
-
-def consistency(prev_checkpoint, debug=False):
-    # verify that prev checkpoint is not empty
-    get_latest_checkpoint()
-    pass
 
 def main():
     log_index = 132216490  # this is the latest.
@@ -94,13 +57,6 @@ def main():
                         required=False)
     args = parser.parse_args()
 
-    #todo: minimise this section
-    #I added a bunch of code here, not gonna be very compact anymore but safe!
-
-
-
-    #below is the original code
-    #todo: blend in!
 
     if args.debug:
         debug = True
@@ -114,22 +70,15 @@ def main():
     if args.inclusion:
         if(isinstance(args.inclusion, int) and args.inclusion >0):
             log_index = args.inclusion
-        # inclusion(args.inclusion, args.artifact, debug)
-
-        # step7
-        #note the artifact is the filepath/name of the artifact
 
         if not(args.artifact):  #sanity check
             print("hold on, how am I supposed to check your artifact if you do not provide the artifact name? I'm using default then")
             args.artifact = "artifact.md"
             return
 
-    get_log_entry(log_index=log_index)
 
-    # after above step, we have raw_log_entry.json, everything else can happen now
+    entry = get_log_entry(log_index=log_index)
 
-    response = requests.get(f'https://rekor.sigstore.dev/api/v1/log/entries?logIndex={log_index}')
-    entry = response.json()
     for i in entry:  # because data is a single key-val pair
         # extract some data before decoding, see raw_log_entry.json
         leaf_hash = compute_leaf_hash(entry[i]['body'])
@@ -163,9 +112,6 @@ def main():
     checkpoint_response = requests.get("https://rekor.sigstore.dev/api/v1/log?stable=true")
     checkpoint_response_data = checkpoint_response.json()  # convert to json format
 
-    # with open('est.json', 'w') as testfile:   #debug code generate json
-    #     json.dump(checkpoint_response_data, testfile)
-
     checkpoint_root_hash = checkpoint_response_data['rootHash']  # str
     checkpoint_tree_id = checkpoint_response_data['treeID']  # str
     # print(f"\t\tLOOK HERE tree id: {checkpoint_tree_id}")
@@ -188,12 +134,6 @@ def main():
 
     if args.inclusion:
         verify_artifact_signature(signature, public_key, args.artifact)
-    # get_verification_proof(132216490) # for now skip the sanity check
-
-    # step8
-    #note that the argument here should be logIndex from online log entry, which is proof_log_index
-    # if(args.inclusion != proof_log_index):
-    #     print(f"You gave me a wrong inclusion of {args.inclusion}, which is also the log index, supposedly {proof_log_index}, but is ok! I got you!")
 
     if(args.inclusion and not isinstance(args.inclusion, int)):    #sanity check
         print(f"by the way, the inclusion should be an integer! Now I am using default index{log_index}")
@@ -202,15 +142,15 @@ def main():
         verify_inclusion(DefaultHasher, proof_log_index, tree_size, leaf_hash, hashes, root_hash)
 
     if args.consistency:
-        # if not args.tree_id:
-        #     print("please specify tree id for prev checkpoint")
-        #     return
-        # if not args.tree_size:
-        #     print("please specify tree size for prev checkpoint")
-        #     return
-        # if not args.root_hash:
-        #     print("please specify root hash for prev checkpoint")
-        #     return
+        if not args.tree_id:
+            print("please specify tree id for prev checkpoint")
+            return
+        if not args.tree_size:
+            print("please specify tree size for prev checkpoint")
+            return
+        if not args.root_hash:
+            print("please specify root hash for prev checkpoint")
+            return
 
         prev_checkpoint = {}
         prev_checkpoint["treeID"] = args.tree_id
@@ -229,30 +169,16 @@ def main():
         verify_consistency(DefaultHasher, int(checkpoint_tree_size), int(tree_size), proof_hashes, checkpoint_root_hash,root_hash)
 
 
-
 # requires entry["body"] output for a log entry
 # returns the leaf hash according to the rfc 6962 spec
 def compute_leaf_hash(body):
     entry_bytes = base64.b64decode(body)
-    # create a new sha256 hash object
     h = hashlib.sha256()
-    # write the leaf hash prefix
     h.update(bytes([RFC6962_LEAF_HASH_PREFIX]))
-    # write the actual leaf data
     h.update(entry_bytes)
-    # return the computed hash
     return h.hexdigest()
 
 
 
 if __name__ == "__main__":
     main()
-    # get_log_entry(131489199) obsolete as we were missing cert and sig generaion
-    # get_log_entry(132216490)
-    # extract_cert_and_sig_from_log_entry('log_entry.json')
-
-    # extract_public_key(base64.b64decode('LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN6RENDQWxPZ0F3SUJBZ0lVSkdsODhoWjhSa2huUk1nT0lGV3JWOG0xY3hRd0NnWUlLb1pJemowRUF3TXcKTnpFVk1CTUdBMVVFQ2hNTWMybG5jM1J2Y21VdVpHVjJNUjR3SEFZRFZRUURFeFZ6YVdkemRHOXlaUzFwYm5SbApjbTFsWkdsaGRHVXdIaGNOTWpRd09URTVNVGMwTURJMldoY05NalF3T1RFNU1UYzFNREkyV2pBQU1Ga3dFd1lICktvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVFUXd0bEhTR2dGeXhZc0lOWVJ4UCs1MXlKbVhrbXZ4dy85OEYKN3hObHo4eUNHbXhIdDlIM0dRSUxGdmNaQnlvN2dEUndDRFpsU0pFbzVadC9OeDRjVktPQ0FYSXdnZ0Z1TUE0RwpBMVVkRHdFQi93UUVBd0lIZ0RBVEJnTlZIU1VFRERBS0JnZ3JCZ0VGQlFjREF6QWRCZ05WSFE0RUZnUVVwQWZlCnpsVjYyUUdhZjRqbGNFMHlldkxLamJzd0h3WURWUjBqQkJnd0ZvQVUzOVBwejFZa0VaYjVxTmpwS0ZXaXhpNFkKWkQ4d0hBWURWUjBSQVFIL0JCSXdFSUVPYW5JMU9EZzNRRzU1ZFM1bFpIVXdMQVlLS3dZQkJBR0R2ekFCQVFRZQphSFIwY0hNNkx5OW5hWFJvZFdJdVkyOXRMMnh2WjJsdUwyOWhkWFJvTUM0R0Npc0dBUVFCZzc4d0FRZ0VJQXdlCmFIUjBjSE02THk5bmFYUm9kV0l1WTI5dEwyeHZaMmx1TDI5aGRYUm9NSUdLQmdvckJnRUVBZFo1QWdRQ0JId0UKZWdCNEFIWUEzVDB3YXNiSEVUSmpHUjRjbVdjM0FxSktYcmplUEszL2g0cHlnQzhwN280QUFBR1NDMTczb2dBQQpCQU1BUnpCRkFpRUF0bW9RZ0x0L05vZE1nMHpreVlkYnNJbDFjVlgxYzNkbDRBNUNvWmxJL2RvQ0lFYVFzTkorCnk2QVdqeEVXMGFrZHp6clVVSmNseWZKcy84R2VQdUxjZURIN01Bb0dDQ3FHU000OUJBTURBMmNBTUdRQ01Dc3EKdWE2RTMxemtRNHczc3dhckNXd3pCSmFDZ3IvSkRXTFRwWmw0dU9LODlGcmhnT0t1NEdjREZyOFJkL2lDSkFJdwpmRitmTUY0bmdURGpyYVNmRG80cFNLRFNCWG14aXVJY20zbnlYRVQ0cytZa2pQY0oyY3o4QWF6Tm4zTG1qOGVXCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K'))
-    # verify_artifact_signature(base64.b64decode('MEMCIFz/QVJ/2595WUxl1MKhACWas3cFIIJb7cgRmFS3q1/jAh8kN8KPBxW+CfdbXJApfNZbMXg6d/+T2ZuDU3XL51CG'),
-    # extract_public_key(base64.b64decode('LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN6RENDQWxPZ0F3SUJBZ0lVSkdsODhoWjhSa2huUk1nT0lGV3JWOG0xY3hRd0NnWUlLb1pJemowRUF3TXcKTnpFVk1CTUdBMVVFQ2hNTWMybG5jM1J2Y21VdVpHVjJNUjR3SEFZRFZRUURFeFZ6YVdkemRHOXlaUzFwYm5SbApjbTFsWkdsaGRHVXdIaGNOTWpRd09URTVNVGMwTURJMldoY05NalF3T1RFNU1UYzFNREkyV2pBQU1Ga3dFd1lICktvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVFUXd0bEhTR2dGeXhZc0lOWVJ4UCs1MXlKbVhrbXZ4dy85OEYKN3hObHo4eUNHbXhIdDlIM0dRSUxGdmNaQnlvN2dEUndDRFpsU0pFbzVadC9OeDRjVktPQ0FYSXdnZ0Z1TUE0RwpBMVVkRHdFQi93UUVBd0lIZ0RBVEJnTlZIU1VFRERBS0JnZ3JCZ0VGQlFjREF6QWRCZ05WSFE0RUZnUVVwQWZlCnpsVjYyUUdhZjRqbGNFMHlldkxLamJzd0h3WURWUjBqQkJnd0ZvQVUzOVBwejFZa0VaYjVxTmpwS0ZXaXhpNFkKWkQ4d0hBWURWUjBSQVFIL0JCSXdFSUVPYW5JMU9EZzNRRzU1ZFM1bFpIVXdMQVlLS3dZQkJBR0R2ekFCQVFRZQphSFIwY0hNNkx5OW5hWFJvZFdJdVkyOXRMMnh2WjJsdUwyOWhkWFJvTUM0R0Npc0dBUVFCZzc4d0FRZ0VJQXdlCmFIUjBjSE02THk5bmFYUm9kV0l1WTI5dEwyeHZaMmx1TDI5aGRYUm9NSUdLQmdvckJnRUVBZFo1QWdRQ0JId0UKZWdCNEFIWUEzVDB3YXNiSEVUSmpHUjRjbVdjM0FxSktYcmplUEszL2g0cHlnQzhwN280QUFBR1NDMTczb2dBQQpCQU1BUnpCRkFpRUF0bW9RZ0x0L05vZE1nMHpreVlkYnNJbDFjVlgxYzNkbDRBNUNvWmxJL2RvQ0lFYVFzTkorCnk2QVdqeEVXMGFrZHp6clVVSmNseWZKcy84R2VQdUxjZURIN01Bb0dDQ3FHU000OUJBTURBMmNBTUdRQ01Dc3EKdWE2RTMxemtRNHczc3dhckNXd3pCSmFDZ3IvSkRXTFRwWmw0dU9LODlGcmhnT0t1NEdjREZyOFJkL2lDSkFJdwpmRitmTUY0bmdURGpyYVNmRG80cFNLRFNCWG14aXVJY20zbnlYRVQ0cytZa2pQY0oyY3o4QWF6Tm4zTG1qOGVXCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K')),
-    # 'artifact.md')
-    # step12()
