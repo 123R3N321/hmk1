@@ -88,8 +88,6 @@ def verify_consistency(hasher, size1, size2, proof, root1, root2):
 def verify_match(calculated, expected):
     if calculated != expected:
         raise RootMismatchError(expected, calculated)
-    else:
-        print("inclusion proof is sound! --Ren")
 
 def decomp_incl_proof(index, size):
     inner = inner_proof_size(index, size)
@@ -151,11 +149,13 @@ def verify_inclusion(hasher, index, size, leaf_hash, proof, root, debug=False):
     bytearray_leaf = bytes.fromhex(leaf_hash)
     calc_root = root_from_inclusion_proof(hasher, index, size, bytearray_leaf, bytearray_proof)
     verify_match(calc_root, bytearray_root)
+    print("inclusion verified! --Ren")
     if debug:
         print("Calculated root hash", calc_root.hex())
         print("Given root hash", bytearray_root.hex())
         if (bytearray_root.hex() == calc_root.hex()):
             print("Root hash matches (identical) -- Ren")
+
 
 # requires entry["body"] output for a log entry
 # returns the leaf hash according to the rfc 6962 spec

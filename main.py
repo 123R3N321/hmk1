@@ -28,6 +28,66 @@ def get_log_entry(log_index):
      return requests.get(f'https://rekor.sigstore.dev/api/v1/log/entries?logIndex={log_index}').json()
 
 
+def signature_inclusion_proof(entry):
+    for i in entry:  # because data is a single key-val pair
+        # extract some data before decoding, see raw_log_entry.json
+        leaf_hash = compute_leaf_hash(entry[i]['body'])
+        # hashes is the proof
+        checkpoint_data = entry[i]['verification']['inclusionProof']['checkpoint']
+        # we only need tree id from this part, as size and root hash are nicely given below
+        pattern = r'- (.*?)\n'  # the weird format. What can I say
+        match = re.search(pattern, checkpoint_data)
+        if match:
+            tree_id = match.group(1).strip()
+            # print(f"successful tree id extraction:{tree_id}")
+        else:
+            print("WARNING: no tree id found")
+
+        hashes = entry[i]['verification']['inclusionProof']['hashes']
+        proof_log_index = entry[i]['verification']['inclusionProof']['logIndex']
+        root_hash = entry[i]['verification']['inclusionProof']['rootHash']
+        tree_size = entry[i]['verification']['inclusionProof']['treeSize']
+
+        # below retrieved after decoding, see log_entry.json. I name it decode_1
+        decode_1 = base64.b64decode(entry[i]['body']).decode()
+        data = ast.literal_eval(decode_1)  # so we do not have to stare at a damn string, instead a nice dict.
+    signature = base64.b64decode(data['spec']['signature']['content'])
+    # cert, like the signature, must be decoded a second time
+    certificate = base64.b64decode(data['spec']['signature']['publicKey']['content'])
+
+    # this key is literally the decoded version of the cert
+    public_key = extract_public_key(certificate)
+
+    # next, we get the latest checkpoint and call verify_consistency to match against our own checkpoint
+    checkpoint_response = requests.get("https://rekor.sigstore.dev/api/v1/log?stable=true")
+    checkpoint_response_data = checkpoint_response.json()  # convert to json format
+
+    checkpoint_root_hash = checkpoint_response_data['rootHash']  # str
+    checkpoint_tree_id = checkpoint_response_data['treeID']  # str
+    # print(f"\t\tLOOK HERE tree id: {checkpoint_tree_id}")
+    checkpoint_tree_size = checkpoint_response_data['treeSize']  # int
+
+
+    proof_response = requests.get(
+        f"https://rekor.sigstore.dev/api/v1/log/proof?firstSize={int(checkpoint_tree_size)}&lastSize={int(tree_size)}&treeID={str(checkpoint_tree_id)}")
+    proof_response_data = proof_response.json()
+    proof_hashes = proof_response_data['hashes']
+    return (signature,
+            public_key,
+            proof_log_index,
+            tree_size,
+            leaf_hash,
+            hashes,
+            root_hash,
+            proof_hashes,
+            checkpoint_root_hash,
+            checkpoint_tree_id,
+            checkpoint_tree_size,
+            checkpoint_root_hash
+            )
+
+
+
 def main():
     log_index = 132216490  # this is the latest.
 
@@ -79,55 +139,7 @@ def main():
 
     entry = get_log_entry(log_index=log_index)
 
-    for i in entry:  # because data is a single key-val pair
-        # extract some data before decoding, see raw_log_entry.json
-        leaf_hash = compute_leaf_hash(entry[i]['body'])
-        # hashes is the proof
-        checkpoint_data = entry[i]['verification']['inclusionProof']['checkpoint']
-        # we only need tree id from this part, as size and root hash are nicely given below
-        pattern = r'- (.*?)\n'  # the weird format. What can I say
-        match = re.search(pattern, checkpoint_data)
-        if match:
-            tree_id = match.group(1).strip()
-            # print(f"successful tree id extraction:{tree_id}")
-        else:
-            print("WARNING: no tree id found")
-
-        hashes = entry[i]['verification']['inclusionProof']['hashes']
-        proof_log_index = entry[i]['verification']['inclusionProof']['logIndex']
-        root_hash = entry[i]['verification']['inclusionProof']['rootHash']
-        tree_size = entry[i]['verification']['inclusionProof']['treeSize']
-
-        # below retrieved after decoding, see log_entry.json. I name it decode_1
-        decode_1 = base64.b64decode(entry[i]['body']).decode()
-        data = ast.literal_eval(decode_1)  # so we do not have to stare at a damn string, instead a nice dict.
-    signature = base64.b64decode(data['spec']['signature']['content'])
-    # cert, like the signature, must be decoded a second time
-    certificate = base64.b64decode(data['spec']['signature']['publicKey']['content'])
-
-    # this key is literally the decoded version of the cert
-    public_key = extract_public_key(certificate)
-
-    # next, we get the latest checkpoint and call verify_consistency to match against our own checkpoint
-    checkpoint_response = requests.get("https://rekor.sigstore.dev/api/v1/log?stable=true")
-    checkpoint_response_data = checkpoint_response.json()  # convert to json format
-
-    checkpoint_root_hash = checkpoint_response_data['rootHash']  # str
-    checkpoint_tree_id = checkpoint_response_data['treeID']  # str
-    # print(f"\t\tLOOK HERE tree id: {checkpoint_tree_id}")
-    checkpoint_tree_size = checkpoint_response_data['treeSize']  # int
-
-    # the proof uses my own tree size against latest tree size
-    # print(f"attempt to retrieve proof with input:\n treeSize:{tree_size}, \nlastSize:{checkpoint_tree_size}, \ntreeID:{checkpoint_tree_id}")
-
-    proof_response = requests.get(
-        f"https://rekor.sigstore.dev/api/v1/log/proof?firstSize={int(checkpoint_tree_size)}&lastSize={int(tree_size)}&treeID={str(checkpoint_tree_id)}")
-    proof_response_data = proof_response.json()
-
-    # with open("test.json", 'w') as f: #debug file dump
-    #     json.dump(proof_response_data, f)
-
-    proof_hashes = proof_response_data['hashes']
+    signature,public_key,proof_log_index,tree_size,leaf_hash,hashes,root_hash,proof_hashes,checkpoint_root_hash,checkpoint_tree_id,checkpoint_tree_size,checkpoint_root_hash = signature_inclusion_proof(entry)
 
     if not args.artifact:
         args.artifact = "artifact.md"
@@ -163,7 +175,6 @@ def main():
             if(not isinstance(prev_checkpoint["treeID"], str) or not isinstance(prev_checkpoint["treeSize"], int) or not isinstance(prev_checkpoint["rootHash"], str)): #sanity check
                 print("by the way, the treeID should be string made of digits only,a nd the treeSize is a positive int, and that the hash is, as all hashes tend to be, a long long string!")
 
-        # consistency(prev_checkpoint, debug)
 
         # params: hasher, size1, size2, proof, root1, root2
         verify_consistency(DefaultHasher, int(checkpoint_tree_size), int(tree_size), proof_hashes, checkpoint_root_hash,root_hash)
@@ -177,7 +188,6 @@ def compute_leaf_hash(body):
     h.update(bytes([RFC6962_LEAF_HASH_PREFIX]))
     h.update(entry_bytes)
     return h.hexdigest()
-
 
 
 if __name__ == "__main__":
