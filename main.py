@@ -42,7 +42,7 @@ checks the sanity of the arguments
 return false if not sane
 '''
 def inlclusion_arg_sane(log_index_arg, artifact_arg):
-    return isinstance(log_index_arg, int) and log_index>0 and isinstance(artifact_arg, str) and len(artifact_arg)>0
+    return isinstance(log_index_arg, int) and log_index_arg>0 and isinstance(artifact_arg, str) and len(artifact_arg)>0
 
 '''
 checks sanity of arguments
