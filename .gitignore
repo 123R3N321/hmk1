@@ -13,6 +13,11 @@ venv/
 *.json
 *.pem
 *.sig
+*.py
 
 #but the following we do not ignore, exceptions:
 !dummy.json
+!main.py
+!api.py
+!util.py
+!merkle_proof.py
