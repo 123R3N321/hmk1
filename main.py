@@ -8,9 +8,9 @@ import ast
 import json
 import argparse
 import re  # because Im lazy
+import base64
 
 import requests
-import base64
 
 from util import extract_public_key, verify_artifact_signature
 from merkle_proof import DefaultHasher, verify_consistency, verify_inclusion, compute_leaf_hash
@@ -110,7 +110,7 @@ def get_consistency_data(current_tree_size):
         checkpoint_response_data = checkpoint_response.json()
 
         checkpoint_root_hash = checkpoint_response_data['rootHash']  # str
-        checkpoint_tree_id = checkpoint_response_data['treeID']  # str
+        # checkpoint_tree_id = checkpoint_response_data['treeID']  # str
         checkpoint_tree_size = checkpoint_response_data['treeSize']  # int
 
         # Build the URL for fetching the proof data
@@ -118,7 +118,7 @@ def get_consistency_data(current_tree_size):
             f"https://rekor.sigstore.dev/api/v1/log/proof"
             f"?firstSize={int(checkpoint_tree_size)}"
             f"&lastSize={int(current_tree_size)}"
-            f"&treeID={str(checkpoint_tree_id)}"
+            # f"&treeID={str(checkpoint_tree_id)}"
         )
 
         # Fetch the proof data
@@ -127,8 +127,6 @@ def get_consistency_data(current_tree_size):
         proof_hashes = proof_response_data['hashes']
 
         return (proof_hashes,
-                checkpoint_root_hash,
-                checkpoint_tree_id,
                 checkpoint_tree_size,
                 checkpoint_root_hash)
 
@@ -248,14 +246,14 @@ def main():
 
         if not consistency_arg_sane(args.tree_id, args.tree_size, args.root_hash) or debug_flag:
             print("one or multiple arguments invalid. Using default values.")
-            args.tree_size, args.root_hash = (lambda t: (t[3], t[6]))(
-                signature_inclusion_proof(entry))  # we only need tree size and root hash
+            proof_data = signature_inclusion_proof(entry)
+            args.tree_size, args.root_hash = (
+                args.tree_size, args.root_hash) = (
+                proof_data[3], proof_data[6])  # we only need tree size and root hash
 
         # params: hasher, size1, size2, proof, root1, root2
         # note size2 >= size1 always, implied size 1 latest checkpoint data
         (proof_hashes,
-         checkpoint_root_hash,
-         checkpoint_tree_id,
          checkpoint_tree_size,
          checkpoint_root_hash) = get_consistency_data(args.tree_size)
         verify_consistency(DefaultHasher,
