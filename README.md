@@ -1,11 +1,29 @@
 # This is homework1 of CS-GY/UY 3943/9223 SUpply Chain Secrity
 
-## how to use:
+## set-up:
+This entire project is based on the sigstore [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) tools
+on linux:
+```bash
+curl -O -L "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64"
+sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+sudo chmod +x /usr/local/bin/cosign
+```
+If you have ``go`` or ``homebrew`` it would be easier.
+## Signing an artifact:
+1. Sign an artifact using cosign tool with your identity using:
+```bash
+    cosign sign-blob <file> --bundle cosign.bundle
+  ```
+You can also refer to the official [cosign tutorial](https://docs.sigstore.dev/cosign/signing/signing_with_blobs/)
+
+## After signing an artifact:
 commands:
-- python3 main.py -c
-- python3 main.py --inclusion artifact.md 
-  - (the last command can be changed to anything you sign)
-- python3 main.py --consistency
+```bash
+python3 main.py -c
+python3 main.py --inclusion <artifact> 
+  # (the last argument can be changed to anything you signed)
+python3 main.py --consistency
+```
 
 ## notes
 The point of this homework is the know-how of cosign tools, i particular the rekor APIs
@@ -23,5 +41,5 @@ reaches 0.
 
 
 ## reference materials:
-- Template Code: https://github.com/mayank-ramnani/python-rekor-monitor-template
-- Rekor API Spec: https://www.sigstore.dev/swagger/#/tlog/getLogInfo
+- [Template Code from class TA](https://github.com/mayank-ramnani/python-rekor-monitor-template)
+- [Rekor API Spec](https://www.sigstore.dev/swagger/#/tlog/getLogInfo)
