@@ -14,6 +14,7 @@ venv/
 *.pem
 *.sig
 *.py
+*.txt
 
 #but the following we do not ignore, exceptions:
 !dummy.json
