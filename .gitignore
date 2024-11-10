@@ -22,3 +22,4 @@ venv/
 !api.py
 !util.py
 !merkle_proof.py
+!personal.txt
