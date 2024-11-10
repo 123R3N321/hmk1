@@ -10,7 +10,7 @@ repos:
           sudo docker run --rm \
           -v /home/ren/projects/SupChainSec/hmk1:/workspace \
           trufflesecurity/trufflehog:latest \
-          git file:///workspace; \
+          git file:///workspace --fail; \
           git checkout main; \
           git branch -D temp-branch'
         language: system
