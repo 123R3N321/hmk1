@@ -15,6 +15,7 @@ venv/
 *.sig
 *.py
 *.txt
+git-filter-repo
 
 #but the following we do not ignore, exceptions:
 !dummy.json
