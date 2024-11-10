@@ -4,14 +4,6 @@ repos:
       - id: trufflehog
         name: TruffleHog
         description: Detect secrets in your data.
-        entry: |
-          bash -c 'TEMP_COMMIT=$(git log -1 --format=%H); \
-          git checkout -b temp-branch $TEMP_COMMIT; \
-          sudo docker run --rm \
-          -v /home/ren/projects/SupChainSec/hmk1:/workspace \
-          trufflesecurity/trufflehog:latest \
-          git file:///workspace --fail; \
-          git checkout main; \
-          git branch -D temp-branch'
+        entry: bash -c 'trufflehog git file://. --since-commit HEAD --no-verification --fail --archive-max-depth=1 --no-update'
         language: system
         stages: ["pre-commit", "pre-push"]
