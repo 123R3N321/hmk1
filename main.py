@@ -15,10 +15,6 @@ import requests
 from util import extract_public_key, verify_artifact_signature
 from merkle_proof import DefaultHasher, verify_consistency, verify_inclusion, compute_leaf_hash
 
-secret = "AIzaSyCwEro-wQ6YUNcA1ozA9FQev-DyJp3t87Q"
-another_secret = "AI9aSyCwEro-wQ6YUNcA1obA9FQev-DyJp3t2EQ"
-api_key = "I9aSyCwEr6YUNcA1ozA"
-another_secret_KEY = "6ada614f05f009735522b5054c75ab5e4f61f348"
 # api urls
 LOG_ENTRY_URL = "https://rekor.sigstore.dev/api/v1/log/entries?logIndex="
 
