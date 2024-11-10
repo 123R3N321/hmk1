@@ -24,6 +24,16 @@ python3 main.py --inclusion <artifact>
   # (the last argument can be changed to anything you signed)
 python3 main.py --consistency
 ```
+## Important notes:
+
+- This repo runs a [Trufflehog](https://github.com/trufflesecurity/trufflehog) 
+    command to scan each latest commit attempt to prevent secret leak,
+    however, the local repo on linux environment resulted in likely non-functional
+    pre-commit config. The Docker image of Trufflehog does not support laetst one-
+    commit scan. For Mac environment, modify ``pre-commit-config.yaml``, line 7, to:
+    ```yaml
+    entry: bash -c 'trufflehog git file://. --since-commit HEAD --no-verification --fail --max-depth=1'
+    ```
 
 ## notes
 The point of this homework is the know-how of cosign tools, i particular the rekor APIs
