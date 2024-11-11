@@ -27,4 +27,4 @@ git-filter-repo
 !personal.txt
 !pyproject.toml
 !poetry.lock
-!tests
+!tests/**
