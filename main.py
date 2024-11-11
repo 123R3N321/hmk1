@@ -248,7 +248,6 @@ def main():
             print("one or multiple arguments invalid. Using default values.")
             proof_data = signature_inclusion_proof(entry)
             args.tree_size, args.root_hash = (
-                args.tree_size, args.root_hash) = (
                 proof_data[3], proof_data[6])  # we only need tree size and root hash
 
         # params: hasher, size1, size2, proof, root1, root2

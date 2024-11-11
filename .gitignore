@@ -16,6 +16,7 @@ venv/
 *.py
 *.txt
 git-filter-repo
+.coverage
 
 #but the following we do not ignore, exceptions:
 !dummy.json
@@ -24,3 +25,6 @@ git-filter-repo
 !util.py
 !merkle_proof.py
 !personal.txt
+!pyproject.toml
+!poetry.lock
+!tests
