@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hmk1"
-version = "0.1.0"
+version = "0.1.4"
 description = "A package that is quite pointless"
 authors = ["some dude <jr5887@nyu.edu>"]
 maintainers = [
@@ -81,3 +81,5 @@ virtualenv = "20.27.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+[tool.poetry.scripts]
+hmk1 = "hmk1.main:main"
