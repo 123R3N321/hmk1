@@ -3,8 +3,8 @@
 ## Supported Version(s)
 
 | Version | Supported          |
-| ------- | ------------------ |
-| 1.0.0   | :white_check_mark: |
+|---------| ------------------ |
+| 0.1.4   | :white_check_mark: |
 
 ## Reporting Vulnerabilities
 
