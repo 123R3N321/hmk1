@@ -1,6 +1,6 @@
 __pycache__/
 venv/
-
+test_env
 #prolly not necessary but doesn't hurt
 .venv/
 
@@ -28,3 +28,4 @@ git-filter-repo
 !pyproject.toml
 !poetry.lock
 !tests/**
+!dist/**
