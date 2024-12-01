@@ -29,3 +29,4 @@ git-filter-repo
 !poetry.lock
 !tests/**
 !dist/**
+!cyclonedx-sbom.json

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hmk1"
-version = "0.1.4"
+version = "0.1.5"
 description = "A package that is quite pointless"
 authors = ["some dude <jr5887@nyu.edu>"]
 maintainers = [
@@ -76,6 +76,7 @@ typer = "0.13.0"
 typing-extensions = "4.12.2"
 urllib3 = "2.2.3"
 virtualenv = "20.27.1"
+cyclonedx-bom = "^5.1.1"
 
 
 [build-system]
