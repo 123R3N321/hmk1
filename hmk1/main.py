@@ -28,7 +28,7 @@ def get_checkpoint():
     with a message for cross-checking an artifact.
     """
     try:
-        checkpoint_url = 'https://rekor.sigstore.dev/api/v1/log?stable=true'
+        checkpoint_url = 'https://rekor.sigstore.dev/api/v1/log'
         checkpoint = requests.get(checkpoint_url, timeout=10).json()
         print(json.dumps(checkpoint, indent=4))
         print("\nAbove is the latest checkpoint info, use it to cross-check your artifact!")

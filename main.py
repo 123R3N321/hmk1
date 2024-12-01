@@ -28,7 +28,7 @@ def get_checkpoint():
     with a message for cross-checking an artifact.
     """
     try:
-        checkpoint_url = 'https://rekor.sigstore.dev/api/v1/log?stable=true'
+        checkpoint_url = 'https://rekor.sigstore.dev/api/v1/log'
         checkpoint = requests.get(checkpoint_url, timeout=10).json()
         print(json.dumps(checkpoint, indent=4))
         print("\nAbove is the latest checkpoint info, use it to cross-check your artifact!")
@@ -124,6 +124,13 @@ def get_consistency_data(current_tree_size):
         # Fetch the proof data
         proof_response = requests.get(proof_url, timeout=10)
         proof_response_data = proof_response.json()
+        print('===================================')
+        print('\tcurrent tree size:')
+        print(current_tree_size)
+        print('===================================')
+        print("\tproof_response_data here:")
+        print(proof_response_data)
+        print('===================================')
         proof_hashes = proof_response_data['hashes']
 
         return (proof_hashes,
