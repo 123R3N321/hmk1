@@ -49,6 +49,15 @@ reaches 0.
 
 - prof explained in class that this implementation is lighter-weight than actual blockchain but I don't quite see why or how.
 
+- api call for latest checkpoint entry, do NOT specify stable=True
+
+
+##notes on creating another bundle for the wheel, and verify it:
+raw command for this project:
+```bash
+cosign attest-blob dist/hmk1-0.1.5-py3-none-any.whl --predicate cyclonedx-sbom.json --bundle sbom.bundle --type cyclonedx
+cosign verify-blob-attestation --bundle sbom.bundle dist/hmk1-0.1.5-py3-none-any.whl --certificate-identity jr5887@nyu.edu --certificate-oidc-issuer https://token.actions.githubusercontent.com --type cyclonedx --check-claims
+```
 
 ## reference materials:
 - [Template Code from class TA](https://github.com/mayank-ramnani/python-rekor-monitor-template)
