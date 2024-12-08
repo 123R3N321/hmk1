@@ -15,7 +15,7 @@ jobs:
       # get version number
       - name: Extract version number
         id: extract_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/V}" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       #----------------------------------------------
       #       check-out repo and set-up python
