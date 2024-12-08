@@ -1,0 +1,96 @@
+name: continuous deployment
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  id-token: write
+  attestations: write
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04 # manually set to my local ubuntu ver
+    steps:
+      # get version number
+      - name: Extract version number
+        id: extract_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/V}" >> $GITHUB_ENV
+
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #       Note that v4 and v5 are github action versions. Not my concern
+      #       manually adjusted python to be my local ver
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      #----------------------------------------------
+      #  -----  install & configure poetry  -----
+      #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          virtualenvs-path: .venv
+          installer-parallel: true
+
+      #----------------------------------------------
+      #       load cached venv if cache exists
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      #----------------------------------------------
+      # install dependencies if cache does not exist
+      #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+      #----------------------------------------------
+      # install your root project, if required
+      #----------------------------------------------
+      - name: Install project
+        run: poetry install --no-interaction
+      #----------------------------------------------
+      # install code checking tools
+      #----------------------------------------------
+      - name: Install linting and security tools
+        run: |
+             source .venv/bin/activate
+             pip install pylint black flake8 bandit
+      #----------------------------------------------
+      #              build and deploy
+      #----------------------------------------------
+#      - name: Build the package
+#        run: |
+#          source .venv/bin/activate
+#          poetry build
+
+#      # Deploy the application
+#      - name: Deploy the application
+#        env:
+#          PypiKey: ${{secrets.PYPIKEY}}
+#        run: |
+#          source .venv/bin/activate
+#          poetry version $VERSION
+#          poetry publish --username __token__ --password $PypiKey
+
+      - name: Build and publish to pypi
+        uses: JRubics/poetry-publish@v2.0
+        with:
+          python_version: "3.10.12"
+          poetry_version: $VERSION
+          pypi_token: ${{ secrets.PYPIKEY }}
+          build_format: "sdist"
+          allow_poetry_pre_release: "yes"
