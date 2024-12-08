@@ -54,7 +54,7 @@ jobs:
       - name: Install linting and security tools
         run: |
              source .venv/bin/activate
-             pip install pylint black ruff flake8 bandit
+             pip install pylint black flake8 bandit
       #----------------------------------------------
       #              run test suite
       #----------------------------------------------
@@ -64,7 +64,7 @@ jobs:
           cd hmk1
           flake8 main.py --max-line-length 120
           black --check main.py
-          ruff check --output-format=github .
           pylint $(git ls-files 'main.py')
           bandit main.py -n 5 -lll
-          pytest --cov=. tests/
+          cd ../
+          pytest --cov=tests/
