@@ -30,3 +30,4 @@ git-filter-repo
 !tests/**
 !dist/**
 !cyclonedx-sbom.json
+!.github/**
