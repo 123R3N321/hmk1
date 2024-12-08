@@ -13,7 +13,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: '1'  #check only latest one commit
+          fetch-depth: '2'  #check only latest two commits for comparison
 
       - name: TruffleHog OSS
         id: trufflehog
@@ -21,7 +21,8 @@ jobs:
         continue-on-error: true
         with:
           path: ./
-          base: "${{ github.event.repository.default_branch }}"
+#          base: "${{ github.event.repository.default_branch }}"
+          base: "${{ github.sha }}^"  # Previous commit
           head: HEAD
           extra_args: --debug
 
