@@ -90,7 +90,7 @@ jobs:
         uses: JRubics/poetry-publish@v2.0
         with:
           python_version: "3.10.12"
-          poetry_version: $VERSION
+          poetry_version: ==$VERSION
           pypi_token: ${{ secrets.PYPIKEY }}
           build_format: "sdist"
           allow_poetry_pre_release: "yes"
