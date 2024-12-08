@@ -60,10 +60,11 @@ jobs:
       #----------------------------------------------
       - name: Run tests
         run: |
+          source .venv/bin/activate
           cd hmk1
-          flake8 . --max-line-length 120
+          flake8 main.py --max-line-length 120
           black --check main.py
           ruff check --output-format=github .
           pylint $(git ls-files 'main.py')
           bandit main.py -n 5 -lll
-          pytest --cov=tests/
+          pytest --cov=. tests/
