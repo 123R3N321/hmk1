@@ -3,7 +3,7 @@ on: push
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # manually set to my local ubuntu ver
     steps:
       #----------------------------------------------
       #       check-out repo and set-up python
