@@ -74,6 +74,7 @@ jobs:
       - name: Extract version
         id: get_version
         run: |
+          pip install toml
           VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['tool']['poetry']['version'])")
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
