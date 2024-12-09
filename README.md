@@ -1,3 +1,4 @@
+[![continuous integration](https://github.com/123R3N321/hmk1/actions/workflows/ci.yml/badge.svg)](https://github.com/123R3N321/hmk1/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/123R3N321/hmk1/badge)](https://scorecard.dev/viewer/?uri=github.com/123R3N321/hmk1)
 # This is homework1 of CS-GY/UY 3943/9223 SUpply Chain Secrity
 
