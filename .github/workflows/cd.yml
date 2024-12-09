@@ -84,6 +84,8 @@ jobs:
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          files: |
+            dist/*
           tag_name: ${{ env.VERSION }}
           release_name: "Release ${{ env.VERSION }}"
 #          release_name: "Release ${{ github.ref_name }}"
