@@ -1,6 +1,7 @@
 [![Continuous Integration](https://github.com/123R3N321/hmk1/actions/workflows/ci.yml/badge.svg)](https://github.com/123R3N321/hmk1/actions/workflows/ci.yml)
 [![Continuous Deployment (Build and Release)](https://github.com/123R3N321/hmk1/actions/workflows/cd.yml/badge.svg)](https://github.com/123R3N321/hmk1/actions/workflows/cd.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/123R3N321/hmk1/badge)](https://scorecard.dev/viewer/?uri=github.com/123R3N321/hmk1)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9790/badge)](https://www.bestpractices.dev/projects/9790)
 # This is homework1 of CS-GY/UY 3943/9223 SUpply Chain Secrity
 
 ## set-up:
