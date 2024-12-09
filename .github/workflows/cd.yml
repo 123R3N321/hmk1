@@ -1,11 +1,11 @@
-name: Continuous Deployment
+name: Continuous Deployment (Build and Release)
 on:
   push:
     tags:
       - "*.*.*"  # Matches semantic version tags like 0.1.2
 jobs:
   cd:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
         id-token: write
         attestations: write
