@@ -1,5 +1,4 @@
-# Badge markdown
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/123r3n321/hmk1/badge)](https://scorecard.dev/viewer/?uri=github.com/123r3n321/hmk1)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/123R3N321/hmk1/badge)](https://scorecard.dev/viewer/?uri=github.com/123R3N321/hmk1)
 # This is homework1 of CS-GY/UY 3943/9223 SUpply Chain Secrity
 
 ## set-up:
